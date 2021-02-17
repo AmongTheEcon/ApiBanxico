@@ -1,0 +1,32 @@
+import urllib.request, urllib.parse, urllib.error
+import json
+import ssl
+
+mi_token = '5e994f9a97bd4db9a563c2c30edd0d5418f4a913c6d1f7b28b65f349e2c4dac4'
+serviceurl = 'https://www.banxico.org.mx/SieAPIRest/service/v1/series/'#https://www.banxico.org.mx/SieAPIRest/service/v1/series/'#SP74665,SF61745,SF60634,SF43773/datos/oportuno?
+idserie = input('Escriba el idSerie que desea consultar (max 20, separe con comas, sin espacios)')
+# Ignore SSL certificate errors
+ctx = ssl.create_default_context()
+ctx.check_hostname = False
+ctx.verify_mode = ssl.CERT_NONE
+#SACAREMOS LOS METADATOS
+url = serviceurl + idserie[:] + '?' + 'token=' + mi_token
+print('Retrieving', url)
+uh = urllib.request.urlopen(url, context=ctx)
+data = uh.read().decode()
+print('Retrieved data URL', len(data), 'characters')
+#try:
+metadatos = json.loads(data)
+#except:
+    #js = None
+#VAMOS A AGREGAR EL DICCIONARIO DE DATOS EN EL DICCIONARIO PRINCIPAL JSON
+url_datos = serviceurl + idserie[:] + '/datos' + '?' + 'token=' + mi_token
+uh_datos = urllib.request.urlopen(url_datos, context=ctx)
+data_datos = uh_datos.read().decode()
+js_datos = json.loads(data_datos)
+datos = js_datos['bmx']['series'][0]['datos'][:]
+#for serie in metadatos['bmx']['series'][:] :
+#    metadatos['bmx']['series'][0]['datos'] = datos
+#if metadatos['bmx']['series'][:]['idSerie'] == js_datos['bmx']['series'][:]['idSerie']:
+metadatos['bmx']['series'][0]['datos'] = datos
+print(json.dumps(metadatos, indent=4))
